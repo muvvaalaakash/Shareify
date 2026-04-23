@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: inventory-service
-          image: mvnsakashinventory-service:latest
+          image: mvnsakash/inventory-service:latest
           ports:
             - containerPort: 8000
           env:
