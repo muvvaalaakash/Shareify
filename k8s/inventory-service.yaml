@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareify-inventory-service
+  labels:
+    app: shareify-inventory-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareify-inventory-service
+  template:
+    metadata:
+      labels:
+        app: shareify-inventory-service
+    spec:
+      containers:
+        - name: inventory-service
+          image: shareify/shareify-inventory-service:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_PATH
+              value: "/data/inventory.db"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-inventory-service
+  labels:
+    app: shareify-inventory-service
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-inventory-service
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP

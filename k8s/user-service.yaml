@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareify-user-service
+  labels:
+    app: shareify-user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareify-user-service
+  template:
+    metadata:
+      labels:
+        app: shareify-user-service
+    spec:
+      containers:
+        - name: user-service
+          image: shareify/shareify-user-service:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: JWT_SECRET
+              value: "shareify-secret-key-2024"
+            - name: DATABASE_PATH
+              value: "/data/users.db"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-user-service
+  labels:
+    app: shareify-user-service
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-user-service
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP

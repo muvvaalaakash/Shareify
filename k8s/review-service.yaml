@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareify-review-service
+  labels:
+    app: shareify-review-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareify-review-service
+  template:
+    metadata:
+      labels:
+        app: shareify-review-service
+    spec:
+      containers:
+        - name: review-service
+          image: shareify/shareify-review-service:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: JWT_SECRET
+              value: "shareify-secret-key-2024"
+            - name: DATABASE_PATH
+              value: "/data/reviews.db"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-review-service
+  labels:
+    app: shareify-review-service
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-review-service
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP

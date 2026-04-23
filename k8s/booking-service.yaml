@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareify-booking-service
+  labels:
+    app: shareify-booking-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareify-booking-service
+  template:
+    metadata:
+      labels:
+        app: shareify-booking-service
+    spec:
+      containers:
+        - name: booking-service
+          image: shareify/shareify-booking-service:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: JWT_SECRET
+              value: "shareify-secret-key-2024"
+            - name: DATABASE_PATH
+              value: "/data/bookings.db"
+            - name: ITEM_SERVICE_URL
+              value: "http://shareify-item-service:8000"
+            - name: INVENTORY_SERVICE_URL
+              value: "http://shareify-inventory-service:8000"
+            - name: PAYMENT_SERVICE_URL
+              value: "http://shareify-payment-service:8000"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-booking-service
+  labels:
+    app: shareify-booking-service
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-booking-service
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP

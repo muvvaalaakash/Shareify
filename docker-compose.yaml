@@ -1,0 +1,116 @@
+# ──────────────────────────────────────────────────────────────────────────────
+#  Shareify – Docker Compose (local development)
+#  Run:  docker-compose up --build
+# ──────────────────────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+  # ── User Service ──────────────────────────────────────────────────────────
+  user-service:
+    build: ./user-service
+    container_name: shareify-user-service
+    ports:
+      - "8001:8000"
+    environment:
+      - JWT_SECRET=shareify-secret-key-2024
+      - DATABASE_PATH=/data/users.db
+    volumes:
+      - user-data:/data
+
+  # ── Item Service ──────────────────────────────────────────────────────────
+  item-service:
+    build: ./item-service
+    container_name: shareify-item-service
+    ports:
+      - "8002:8000"
+    environment:
+      - JWT_SECRET=shareify-secret-key-2024
+      - DATABASE_PATH=/data/items.db
+      - INVENTORY_SERVICE_URL=http://inventory-service:8000
+    volumes:
+      - item-data:/data
+    depends_on:
+      - inventory-service
+
+  # ── Inventory Service ────────────────────────────────────────────────────
+  inventory-service:
+    build: ./inventory-service
+    container_name: shareify-inventory-service
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_PATH=/data/inventory.db
+    volumes:
+      - inventory-data:/data
+
+  # ── Booking Service ──────────────────────────────────────────────────────
+  booking-service:
+    build: ./booking-service
+    container_name: shareify-booking-service
+    ports:
+      - "8004:8000"
+    environment:
+      - JWT_SECRET=shareify-secret-key-2024
+      - DATABASE_PATH=/data/bookings.db
+      - ITEM_SERVICE_URL=http://item-service:8000
+      - INVENTORY_SERVICE_URL=http://inventory-service:8000
+      - PAYMENT_SERVICE_URL=http://payment-service:8000
+    volumes:
+      - booking-data:/data
+    depends_on:
+      - item-service
+      - inventory-service
+      - payment-service
+
+  # ── Payment Service ──────────────────────────────────────────────────────
+  payment-service:
+    build: ./payment-service
+    container_name: shareify-payment-service
+    ports:
+      - "8005:8000"
+    environment:
+      - DATABASE_PATH=/data/payments.db
+    volumes:
+      - payment-data:/data
+
+  # ── Review Service ───────────────────────────────────────────────────────
+  review-service:
+    build: ./review-service
+    container_name: shareify-review-service
+    ports:
+      - "8006:8000"
+    environment:
+      - JWT_SECRET=shareify-secret-key-2024
+      - DATABASE_PATH=/data/reviews.db
+    volumes:
+      - review-data:/data
+
+  # ── API Gateway ──────────────────────────────────────────────────────────
+  api-gateway:
+    build: ./api-gateway
+    container_name: shareify-api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - USER_SERVICE_URL=http://user-service:8000
+      - ITEM_SERVICE_URL=http://item-service:8000
+      - INVENTORY_SERVICE_URL=http://inventory-service:8000
+      - BOOKING_SERVICE_URL=http://booking-service:8000
+      - PAYMENT_SERVICE_URL=http://payment-service:8000
+      - REVIEW_SERVICE_URL=http://review-service:8000
+    depends_on:
+      - user-service
+      - item-service
+      - inventory-service
+      - booking-service
+      - payment-service
+      - review-service
+
+volumes:
+  user-data:
+  item-data:
+  inventory-data:
+  booking-data:
+  payment-data:
+  review-data:

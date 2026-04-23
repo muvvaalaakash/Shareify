@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareify-item-service
+  labels:
+    app: shareify-item-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareify-item-service
+  template:
+    metadata:
+      labels:
+        app: shareify-item-service
+    spec:
+      containers:
+        - name: item-service
+          image: shareify/shareify-item-service:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: JWT_SECRET
+              value: "shareify-secret-key-2024"
+            - name: DATABASE_PATH
+              value: "/data/items.db"
+            - name: INVENTORY_SERVICE_URL
+              value: "http://shareify-inventory-service:8000"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-item-service
+  labels:
+    app: shareify-item-service
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-item-service
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP

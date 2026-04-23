@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareify-payment-service
+  labels:
+    app: shareify-payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareify-payment-service
+  template:
+    metadata:
+      labels:
+        app: shareify-payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: shareify/shareify-payment-service:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_PATH
+              value: "/data/payments.db"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-payment-service
+  labels:
+    app: shareify-payment-service
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-payment-service
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
