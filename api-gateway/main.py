@@ -13,12 +13,12 @@ app = FastAPI(title="Shareify API Gateway", version="1.0.0")
 
 # ── Service URLs ────────────────────────────────────────────────────────────
 SERVICE_MAP = {
-    "users": os.getenv("USER_SERVICE_URL", "http://localhost:8001"),
-    "items": os.getenv("ITEM_SERVICE_URL", "http://localhost:8002"),
-    "inventory": os.getenv("INVENTORY_SERVICE_URL", "http://localhost:8003"),
-    "bookings": os.getenv("BOOKING_SERVICE_URL", "http://localhost:8004"),
-    "payments": os.getenv("PAYMENT_SERVICE_URL", "http://localhost:8005"),
-    "reviews": os.getenv("REVIEW_SERVICE_URL", "http://localhost:8006"),
+    "users": "http://shareify-user-service:8000",
+    "items": "http://shareify-item-service:8000",
+    "inventory": "http://shareify-inventory-service:8000",
+    "bookings": "http://shareify-booking-service:8000",
+    "payments": "http://shareify-payment-service:8000",
+    "reviews": "http://shareify-review-service:8000",
 }
 
 client = httpx.AsyncClient(timeout=10.0)
