@@ -1,5 +1,5 @@
 // ── Configuration ──────────────────────────────────────────
-const API_BASE = "http://localhost:30080/api";
+const API_BASE = "http://localhost:8000/api";
 
 // ── State ──────────────────────────────────────────────────
 let currentUser = null;
@@ -7,13 +7,24 @@ let currentToken = null;
 
 // ── Initialization ─────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
+    let savedToken = null;
+    let savedUser = null;
     
-    if (savedToken && savedUser) {
+    try {
+        savedToken = localStorage.getItem("token");
+        savedUser = localStorage.getItem("user");
+    } catch (err) {
+        console.warn("localStorage is not available (likely because you are running via file:/// protocol). State will not persist.");
+    }
+    
+    if (savedToken && savedUser && savedUser !== "undefined") {
         currentToken = savedToken;
-        currentUser = JSON.parse(savedUser);
-        navigateTo("dashboard");
+        try {
+            currentUser = JSON.parse(savedUser);
+        } catch(e) { currentUser = null; currentToken = null; }
+        
+        if(currentUser) navigateTo("dashboard");
+        else navigateTo("login");
     } else {
         navigateTo("login");
     }
@@ -82,13 +93,13 @@ async function login(e) {
         
         if (res.ok) {
             currentToken = data.access_token;
-            localStorage.setItem("token", currentToken);
+            try { localStorage.setItem("token", currentToken); } catch(err) {}
             
             // Fetch profile
             const profileRes = await fetch(`${API_BASE}/profile`, { headers: getAuthHeaders() });
             const profile = await profileRes.json();
             currentUser = profile;
-            localStorage.setItem("user", JSON.stringify(profile));
+            try { localStorage.setItem("user", JSON.stringify(profile)); } catch(err) {}
             
             showToast("Login successful!");
             navigateTo("dashboard");
@@ -128,8 +139,10 @@ async function register(e) {
 function logout() {
     currentUser = null;
     currentToken = null;
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    try {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+    } catch(err) {}
     navigateTo("login");
 }
 
