@@ -1,5 +1,5 @@
 // ── Configuration ──────────────────────────────────────────
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = "http://13.126.242.38:30080/api";
 
 // ── State ──────────────────────────────────────────────────
 let currentUser = null;
@@ -9,21 +9,21 @@ let currentToken = null;
 document.addEventListener("DOMContentLoaded", () => {
     let savedToken = null;
     let savedUser = null;
-    
+
     try {
         savedToken = localStorage.getItem("token");
         savedUser = localStorage.getItem("user");
     } catch (err) {
         console.warn("localStorage is not available (likely because you are running via file:/// protocol). State will not persist.");
     }
-    
+
     if (savedToken && savedUser && savedUser !== "undefined") {
         currentToken = savedToken;
         try {
             currentUser = JSON.parse(savedUser);
-        } catch(e) { currentUser = null; currentToken = null; }
-        
-        if(currentUser) navigateTo("dashboard");
+        } catch (e) { currentUser = null; currentToken = null; }
+
+        if (currentUser) navigateTo("dashboard");
         else navigateTo("login");
     } else {
         navigateTo("login");
@@ -66,7 +66,7 @@ function navigateTo(page, data = null) {
     else if (page === "add-item") main.innerHTML = renderAddItem();
     else if (page === "item-details") { main.innerHTML = renderItemDetails(data); fetchReviews(data.item_id); }
     else if (page === "my-bookings") { main.innerHTML = renderMyBookings(); fetchMyBookings(); }
-    
+
     updateNav();
 }
 
@@ -82,7 +82,7 @@ async function login(e) {
     e.preventDefault();
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    
+
     try {
         const res = await fetch(`${API_BASE}/login`, {
             method: "POST",
@@ -90,17 +90,17 @@ async function login(e) {
             body: JSON.stringify({ email, password })
         });
         const data = await res.json();
-        
+
         if (res.ok) {
             currentToken = data.access_token;
-            try { localStorage.setItem("token", currentToken); } catch(err) {}
-            
+            try { localStorage.setItem("token", currentToken); } catch (err) { }
+
             // Fetch profile
             const profileRes = await fetch(`${API_BASE}/profile`, { headers: getAuthHeaders() });
             const profile = await profileRes.json();
             currentUser = profile;
-            try { localStorage.setItem("user", JSON.stringify(profile)); } catch(err) {}
-            
+            try { localStorage.setItem("user", JSON.stringify(profile)); } catch (err) { }
+
             showToast("Login successful!");
             navigateTo("dashboard");
         } else {
@@ -116,7 +116,7 @@ async function register(e) {
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    
+
     try {
         const res = await fetch(`${API_BASE}/register`, {
             method: "POST",
@@ -124,7 +124,7 @@ async function register(e) {
             body: JSON.stringify({ name, email, password })
         });
         const data = await res.json();
-        
+
         if (res.ok) {
             showToast("Registration successful! Please login.");
             navigateTo("login");
@@ -142,7 +142,7 @@ function logout() {
     try {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-    } catch(err) {}
+    } catch (err) { }
     navigateTo("login");
 }
 
@@ -202,12 +202,12 @@ async function fetchItems() {
         const res = await fetch(`${API_BASE}/items`);
         const items = await res.json();
         const grid = document.getElementById("items-grid");
-        
+
         if (items.length === 0) {
             grid.innerHTML = "<p>No items available right now.</p>";
             return;
         }
-        
+
         grid.innerHTML = items.map(item => `
             <div class="item-card" onclick='navigateTo("item-details", ${JSON.stringify(item)})'>
                 <div>
@@ -252,7 +252,7 @@ async function addItem(e) {
     const title = document.getElementById("item-title").value;
     const category = document.getElementById("item-category").value;
     const price_per_day = parseFloat(document.getElementById("item-price").value);
-    
+
     try {
         const res = await fetch(`${API_BASE}/items`, {
             method: "POST",
@@ -274,7 +274,7 @@ async function addItem(e) {
 function renderItemDetails(item) {
     const isOwner = currentUser && item.owner_id === currentUser.user_id;
     window.currentItem = item; // Save for booking/review forms
-    
+
     return `
         <div class="glass card">
             <button class="btn btn-small btn-secondary" style="margin-bottom:1.5rem" onclick="navigateTo('dashboard')">← Back</button>
@@ -336,7 +336,7 @@ async function bookItem(e) {
     const start_date = document.getElementById("start-date").value;
     const end_date = document.getElementById("end-date").value;
     const item_id = window.currentItem.item_id;
-    
+
     try {
         const res = await fetch(`${API_BASE}/bookings`, {
             method: "POST",
@@ -344,7 +344,7 @@ async function bookItem(e) {
             body: JSON.stringify({ item_id, start_date, end_date })
         });
         const data = await res.json();
-        
+
         if (res.ok) {
             showToast(`Booking Confirmed! Total: $${data.total_price}`, "success");
             navigateTo("my-bookings");
@@ -361,12 +361,12 @@ async function fetchReviews(item_id) {
         const res = await fetch(`${API_BASE}/reviews?item_id=${item_id}`);
         const data = await res.json();
         const container = document.getElementById("reviews-container");
-        
+
         if (!data.reviews || data.reviews.length === 0) {
             container.innerHTML = "<p style='color:var(--text-muted)'>No reviews yet.</p>";
             return;
         }
-        
+
         container.innerHTML = `
             <div style="margin-bottom:1rem">
                 <strong>Average Rating:</strong> ⭐ ${data.average_rating} / 5 (${data.total_reviews} reviews)
@@ -391,14 +391,14 @@ async function submitReview(e) {
     const rating = parseInt(document.getElementById("review-rating").value);
     const comment = document.getElementById("review-comment").value;
     const item_id = window.currentItem.item_id;
-    
+
     try {
         const res = await fetch(`${API_BASE}/reviews`, {
             method: "POST",
             headers: getAuthHeaders(),
             body: JSON.stringify({ item_id, rating, comment })
         });
-        
+
         if (res.ok) {
             showToast("Review submitted successfully!");
             fetchReviews(item_id);
@@ -427,12 +427,12 @@ async function fetchMyBookings() {
         const res = await fetch(`${API_BASE}/bookings`, { headers: getAuthHeaders() });
         const bookings = await res.json();
         const list = document.getElementById("bookings-list");
-        
+
         if (bookings.length === 0) {
             list.innerHTML = "<p>You have no bookings yet.</p>";
             return;
         }
-        
+
         list.innerHTML = bookings.map(b => `
             <div class="glass card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
                 <div style="display:flex; justify-content:space-between; align-items:start;">
