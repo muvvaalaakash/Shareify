@@ -7,9 +7,18 @@ Shareify API Gateway
 
 import os
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 import httpx
 
 app = FastAPI(title="Shareify API Gateway", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ── Service URLs ────────────────────────────────────────────────────────────
 SERVICE_MAP = {
