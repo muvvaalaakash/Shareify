@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: shareify/shareify-api-gateway:latest
+          image: mvnsakash/api-gateway:latest
           ports:
             - containerPort: 8000
           env:

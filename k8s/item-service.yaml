@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: item-service
-          image: shareify/shareify-item-service:latest
+          image: mvnsakash/item-service:latest
           ports:
             - containerPort: 8000
           env:

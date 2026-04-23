@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: review-service
-          image: shareify/shareify-review-service:latest
+          image: mvnsakash/review-service:latest
           ports:
             - containerPort: 8000
           env:

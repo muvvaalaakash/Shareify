@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: shareify/shareify-user-service:latest
+          image: mvnsakash/user-service:latest
           ports:
             - containerPort: 8000
           env:

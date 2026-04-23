@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: inventory-service
-          image: shareify/shareify-inventory-service:latest
+          image: mvnsakashinventory-service:latest
           ports:
             - containerPort: 8000
           env:
