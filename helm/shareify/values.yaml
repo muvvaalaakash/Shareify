@@ -1,19 +1,50 @@
 # Default values for shareify.
-# This is a YAML-formatted file.
-
 global:
   dockerUsername: mvnsakash
   imageTag: v1.1.2
   nfsServerIp: "172.31.40.121"
   nfsShare: "/var/nfs/general"
-  jwtSecret: "shareify-secret-key-2024"
   storageClassName: "csi-standard"
+  
+  # Centralized Secrets
+  jwtSecret: "shareify-secret-key-2024"
+  smtpPassword: "nfzrhrvcmmhgszjt"
 
 # Common settings for backend services
 backendDefaults:
   replicas: 1
   storageSize: 1Gi
   imagePullPolicy: IfNotPresent
+  
+  # Production Strategy
+  updateStrategy:
+    type: RollingUpdate
+    # Note: StatefulSet RollingUpdate doesn't use maxSurge/maxUnavailable 
+    # but we can simulate it with podManagementPolicy or Deployment conversion.
+    # For now, we use standard RollingUpdate.
+
+  # Resource Management
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # Health Checks
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 10
 
 services:
   user:
@@ -48,13 +79,24 @@ services:
       host: "smtp.gmail.com"
       port: "587"
       user: "aknagasai2104@gmail.com"
-      password: "nfzrhrvcmmhgszjt"
       from: "aknagasai2104@gmail.com"
 
 frontend:
   name: frontend
   port: 80
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
 
 gateway:
   name: gateway

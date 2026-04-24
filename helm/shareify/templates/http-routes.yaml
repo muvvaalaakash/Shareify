@@ -96,7 +96,22 @@ spec:
     - name: shareify-review-service
       port: 8000
 
-  # 7. UI Route
+  # 7. Payment Service (Added)
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/payments
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /payments
+    backendRefs:
+    - name: shareify-payment-service
+      port: 8000
+
+  # 8. UI Route
   - matches:
     - path:
         type: PathPrefix
