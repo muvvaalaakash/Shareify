@@ -1,0 +1,10 @@
+# Prod Overrides
+global:
+  imageTag: v1.1.2 # Or latest for prod
+
+backendDefaults:
+  replicas: 2
+  storageSize: 5Gi
+
+frontend:
+  replicas: 2

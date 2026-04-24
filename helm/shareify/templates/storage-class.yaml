@@ -1,0 +1,10 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.global.storageClassName }}
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: {{ .Values.global.nfsServerIp }}
+  share: /
+reclaimPolicy: Delete
+volumeBindingMode: Immediate

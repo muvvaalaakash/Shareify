@@ -1,0 +1,90 @@
+{{- range $key, $val := .Values.services }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shareify-{{ $val.name }}
+  labels:
+    app: shareify-{{ $val.name }}
+spec:
+  serviceName: "shareify-{{ $val.name }}"
+  replicas: {{ $.Values.backendDefaults.replicas }}
+  selector:
+    matchLabels:
+      app: shareify-{{ $val.name }}
+  template:
+    metadata:
+      labels:
+        app: shareify-{{ $val.name }}
+    spec:
+      containers:
+        - name: {{ $val.name }}
+          image: "{{ $.Values.global.dockerUsername }}/shareify-{{ $val.name }}:{{ $.Values.global.imageTag }}"
+          imagePullPolicy: {{ $.Values.backendDefaults.imagePullPolicy }}
+          ports:
+            - containerPort: {{ $val.port }}
+          env:
+            - name: JWT_SECRET
+              value: {{ $.Values.global.jwtSecret | quote }}
+            - name: DATABASE_PATH
+              value: {{ $val.dbPath | quote }}
+            {{- if eq $key "item" }}
+            - name: INVENTORY_SERVICE_URL
+              value: "http://shareify-inventory-service:8000"
+            {{- end }}
+            {{- if eq $key "booking" }}
+            - name: ITEM_SERVICE_URL
+              value: "http://shareify-item-service:8000"
+            - name: INVENTORY_SERVICE_URL
+              value: "http://shareify-inventory-service:8000"
+            - name: PAYMENT_SERVICE_URL
+              value: "http://shareify-payment-service:8000"
+            - name: USER_SERVICE_URL
+              value: "http://shareify-user-service:8000"
+            - name: NOTIFICATION_SERVICE_URL
+              value: "http://shareify-notification-service:8000"
+            {{- end }}
+            {{- if eq $key "review" }}
+            - name: BOOKING_SERVICE_URL
+              value: "http://shareify-booking-service:8000"
+            {{- end }}
+            {{- if eq $key "notification" }}
+            - name: SMTP_HOST
+              value: {{ $val.smtp.host | quote }}
+            - name: SMTP_PORT
+              value: {{ $val.smtp.port | quote }}
+            - name: SMTP_USER
+              value: {{ $val.smtp.user | quote }}
+            - name: SMTP_PASSWORD
+              value: {{ $val.smtp.password | quote }}
+            - name: SMTP_FROM
+              value: {{ $val.smtp.from | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ $.Values.global.storageClassName | quote }}
+        resources:
+          requests:
+            storage: {{ $.Values.backendDefaults.storageSize }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-{{ $val.name }}
+  labels:
+    app: shareify-{{ $val.name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-{{ $val.name }}
+  ports:
+    - port: {{ $val.port }}
+      targetPort: {{ $val.port }}
+      protocol: TCP
+---
+{{- end }}

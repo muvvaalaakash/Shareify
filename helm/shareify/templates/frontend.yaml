@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareify-{{ .Values.frontend.name }}
+  labels:
+    app: shareify-{{ .Values.frontend.name }}
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: shareify-{{ .Values.frontend.name }}
+  template:
+    metadata:
+      labels:
+        app: shareify-{{ .Values.frontend.name }}
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.global.dockerUsername }}/shareify-{{ .Values.frontend.name }}:{{ .Values.global.imageTag }}"
+          imagePullPolicy: {{ .Values.backendDefaults.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.frontend.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-{{ .Values.frontend.name }}
+  labels:
+    app: shareify-{{ .Values.frontend.name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-{{ .Values.frontend.name }}
+  ports:
+    - port: {{ .Values.frontend.port }}
+      targetPort: {{ .Values.frontend.port }}
+      protocol: TCP

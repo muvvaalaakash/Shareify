@@ -1,0 +1,28 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ .Values.gateway.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  gatewayClassName: kgateway
+  listeners:
+  - name: http
+    port: {{ .Values.gateway.port }}
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.gateway.name }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: kgateway
+    kgateway: {{ .Values.gateway.name }}
+  ports:
+  - port: {{ .Values.gateway.port }}
+    targetPort: {{ .Values.gateway.port }}
+    nodePort: {{ .Values.gateway.nodePort }}

@@ -1,0 +1,10 @@
+# Dev Overrides
+global:
+  imageTag: v1.1.2
+
+backendDefaults:
+  replicas: 1
+  storageSize: 1Gi
+
+frontend:
+  replicas: 1

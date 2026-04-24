@@ -1,0 +1,61 @@
+# Default values for shareify.
+# This is a YAML-formatted file.
+
+global:
+  dockerUsername: mvnsakash
+  imageTag: v1.1.2
+  nfsServerIp: "172.31.40.121"
+  jwtSecret: "shareify-secret-key-2024"
+  storageClassName: "csi-standard"
+
+# Common settings for backend services
+backendDefaults:
+  replicas: 1
+  storageSize: 1Gi
+  imagePullPolicy: IfNotPresent
+
+services:
+  user:
+    name: user-service
+    port: 8000
+    dbPath: "/data/users.db"
+  item:
+    name: item-service
+    port: 8000
+    dbPath: "/data/items.db"
+  inventory:
+    name: inventory-service
+    port: 8000
+    dbPath: "/data/inventory.db"
+  booking:
+    name: booking-service
+    port: 8000
+    dbPath: "/data/bookings.db"
+  payment:
+    name: payment-service
+    port: 8000
+    dbPath: "/data/payments.db"
+  review:
+    name: review-service
+    port: 8000
+    dbPath: "/data/reviews.db"
+  notification:
+    name: notification-service
+    port: 8000
+    dbPath: "/data/notifications.db"
+    smtp:
+      host: "smtp.gmail.com"
+      port: "587"
+      user: "aknagasai2104@gmail.com"
+      password: "nfzrhrvcmmhgszjt"
+      from: "aknagasai2104@gmail.com"
+
+frontend:
+  name: frontend
+  port: 80
+  replicas: 1
+
+gateway:
+  name: gateway
+  port: 80
+  nodePort: 32749
