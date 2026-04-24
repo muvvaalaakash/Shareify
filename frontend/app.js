@@ -296,18 +296,6 @@ function renderItemDetails(item) {
                             </form>
                         </div>
                     ` : `
-                    ${!isOwner ? `
-                        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--surface-border)">
-                            <h3>Book this Item</h3>
-                            <form onsubmit="bookItem(event)" style="margin-top: 1rem;">
-                                <label>Start Date</label>
-                                <input type="date" id="start-date" required>
-                                <label>End Date</label>
-                                <input type="date" id="end-date" required>
-                                <button type="submit" class="btn">Confirm Booking</button>
-                            </form>
-                        </div>
-                    ` : `
                         <div style="margin-top: 2rem; padding: 1rem; background: rgba(138,43,226,0.1); border-radius: 8px;">
                             <p><strong>✨ You own this item</strong></p>
                         </div>
