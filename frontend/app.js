@@ -190,18 +190,61 @@ function renderRegister() {
 function renderDashboard() {
     return `
         <div class="header-flex">
-            <h2>Available Items</h2>
+            <h2>Explore Catalog</h2>
             <button class="btn btn-small" onclick="navigateTo('add-item')">+ List an Item</button>
         </div>
+
+        <div class="search-container glass" style="padding: 1.5rem; margin-bottom: 2rem; border-radius: 15px;">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <input type="text" id="search-input" placeholder="Search for items..." 
+                    style="flex: 1; min-width: 250px; margin-bottom: 0;"
+                    oninput="handleSearch()">
+                
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="category-filters">
+                    <button class="btn btn-small btn-secondary active" onclick="filterItems('All', this)">All</button>
+                    <button class="btn btn-small btn-secondary" onclick="filterItems('Electronics', this)">Electronics</button>
+                    <button class="btn btn-small btn-secondary" onclick="filterItems('Tools', this)">Tools</button>
+                    <button class="btn btn-small btn-secondary" onclick="filterItems('Furniture', this)">Furniture</button>
+                    <button class="btn btn-small btn-secondary" onclick="filterItems('Kitchen', this)">Kitchen</button>
+                </div>
+            </div>
+        </div>
+
         <div class="items-grid" id="items-grid">
             <p>Loading items...</p>
         </div>
     `;
 }
 
-async function fetchItems() {
+// Global state for filters
+window.currentCategory = 'All';
+window.searchQuery = '';
+
+function handleSearch() {
+    window.searchQuery = document.getElementById("search-input").value;
+    fetchItems(window.currentCategory === 'All' ? null : window.currentCategory, window.searchQuery);
+}
+
+function filterItems(category, btn) {
+    window.currentCategory = category;
+    
+    // Update active button UI
+    const btns = document.querySelectorAll("#category-filters button");
+    btns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    fetchItems(category === 'All' ? null : category, window.searchQuery);
+}
+
+async function fetchItems(category = null, q = null) {
     try {
-        const res = await fetch(`${API_BASE}/items`);
+        let url = `${API_BASE}/items`;
+        const params = new URLSearchParams();
+        if (category) params.append("category", category);
+        if (q) params.append("q", q);
+        if (params.toString()) url += `?${params.toString()}`;
+
+        const res = await fetch(url);
         const items = await res.json();
         const grid = document.getElementById("items-grid");
 

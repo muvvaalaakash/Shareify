@@ -113,13 +113,21 @@ def add_item(item: ItemCreate, payload: dict = Depends(verify_token)):
     return {"message": "Item added successfully", "item_id": item_id}
 
 @app.get("/items")
-def get_items(category: str = Query(None)):
+def get_items(category: str = Query(None), q: str = Query(None)):
     conn = get_db()
     try:
+        query = "SELECT * FROM items WHERE 1=1"
+        params = []
+        
         if category:
-            rows = conn.execute("SELECT * FROM items WHERE category = ?", (category,)).fetchall()
-        else:
-            rows = conn.execute("SELECT * FROM items").fetchall()
+            query += " AND category = ?"
+            params.append(category)
+        
+        if q:
+            query += " AND title LIKE ?"
+            params.append(f"%{q}%")
+            
+        rows = conn.execute(query, params).fetchall()
         return [dict(r) for r in rows]
     finally:
         conn.close()
