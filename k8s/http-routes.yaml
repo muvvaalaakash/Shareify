@@ -17,7 +17,7 @@ spec:
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefix: /
+          replacePrefixMatch: /
     backendRefs:
     - name: shareify-user-service
       port: 8000
@@ -30,7 +30,7 @@ spec:
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefix: /items
+          replacePrefixMatch: /items
     backendRefs:
     - name: shareify-item-service
       port: 8000
@@ -43,7 +43,7 @@ spec:
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefix: /bookings
+          replacePrefixMatch: /bookings
     backendRefs:
     - name: shareify-booking-service
       port: 8000
@@ -57,7 +57,7 @@ spec:
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefix: /
+          replacePrefixMatch: /
     backendRefs:
     - name: shareify-inventory-service
       port: 8000
@@ -70,7 +70,7 @@ spec:
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefix: /payments
+          replacePrefixMatch: /payments
     backendRefs:
     - name: shareify-payment-service
       port: 8000
@@ -83,7 +83,7 @@ spec:
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefix: /reviews
+          replacePrefixMatch: /reviews
     backendRefs:
     - name: shareify-review-service
       port: 8000
