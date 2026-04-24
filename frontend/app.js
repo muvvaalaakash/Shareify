@@ -47,6 +47,7 @@ function updateNav() {
             <button onclick="navigateTo('add-item')">List Item</button>
             <button onclick="navigateTo('my-bookings')">My Bookings</button>
             <button onclick="navigateTo('my-payments')">My Payments</button>
+            <button onclick="navigateTo('faqs')">FAQs</button>
             <button onclick="logout()">Logout (${currentUser.name})</button>
         `;
     } else {
@@ -68,6 +69,7 @@ function navigateTo(page, data = null) {
     else if (page === "item-details") { main.innerHTML = renderItemDetails(data); fetchReviews(data.item_id); }
     else if (page === "my-bookings") { main.innerHTML = renderMyBookings(); fetchMyBookings(); }
     else if (page === "my-payments") { main.innerHTML = renderMyPayments(); fetchMyPayments(); }
+    else if (page === "faqs") { main.innerHTML = renderFAQs(); }
 
     updateNav();
 }
@@ -598,4 +600,25 @@ async function fetchMyPayments() {
     } catch (err) {
         document.getElementById("payments-list").innerHTML = "<p>Error loading payment history.</p>";
     }
+}
+function renderFAQs() {
+    const faqs = [
+        { q: "How do I list an item?", a: "Click on 'List Item' in the navigation bar, fill in the details, and set a price!" },
+        { q: "Is Shareify secure?", a: "Yes! We use JWT authentication and secure backend microservices to protect your data." },
+        { q: "How do I pay?", a: "When you book an item, our payment service handles a mock transaction automatically." },
+        { q: "Can I delete my listed products?", a: "Yes, you can delete any items you own from the product details page." },
+        { q: "How do I leave a review?", a: "You can leave a review after your booking status is marked as 'Completed'." }
+    ];
+
+    return `
+        <div class="faq-container" style="max-width: 800px; margin: 0 auto;">
+            <h2 style="text-align:center; margin-bottom: 2rem;">Frequently Asked Questions</h2>
+            ${faqs.map(f => `
+                <div class="glass card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+                    <h3 style="color:var(--primary); margin-bottom: 0.5rem;">Q: ${f.q}</h3>
+                    <p>A: ${f.a}</p>
+                </div>
+            `).join("")}
+        </div>
+    `;
 }
