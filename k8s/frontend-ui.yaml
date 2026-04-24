@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: mvnsakash/shareify-frontend:v1.1.1
+          image: mvnsakash/shareify-frontend:v1.1.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

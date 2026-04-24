@@ -9,6 +9,7 @@ services:
   # ── User Service ──────────────────────────────────────────────────────────
   user-service:
     build: ./user-service
+    image: mvnsakash/shareify-user-service:v1.1.2
     container_name: shareify-user-service
     ports:
       - "8001:8000"
@@ -21,6 +22,7 @@ services:
   # ── Item Service ──────────────────────────────────────────────────────────
   item-service:
     build: ./item-service
+    image: mvnsakash/shareify-item-service:v1.1.2
     container_name: shareify-item-service
     ports:
       - "8002:8000"
@@ -36,6 +38,7 @@ services:
   # ── Inventory Service ────────────────────────────────────────────────────
   inventory-service:
     build: ./inventory-service
+    image: mvnsakash/shareify-inventory-service:v1.1.2
     container_name: shareify-inventory-service
     ports:
       - "8003:8000"
@@ -47,6 +50,7 @@ services:
   # ── Booking Service ──────────────────────────────────────────────────────
   booking-service:
     build: ./booking-service
+    image: mvnsakash/shareify-booking-service:v1.1.2
     container_name: shareify-booking-service
     ports:
       - "8004:8000"
@@ -70,6 +74,7 @@ services:
   # ── Payment Service ──────────────────────────────────────────────────────
   payment-service:
     build: ./payment-service
+    image: mvnsakash/shareify-payment-service:v1.1.2
     container_name: shareify-payment-service
     ports:
       - "8005:8000"
@@ -81,6 +86,7 @@ services:
   # ── Review Service ───────────────────────────────────────────────────────
   review-service:
     build: ./review-service
+    image: mvnsakash/shareify-review-service:v1.1.2
     container_name: shareify-review-service
     ports:
       - "8006:8000"
@@ -96,6 +102,7 @@ services:
   # ── Frontend ─────────────────────────────────────────────────────────────
   frontend:
     build: ./frontend
+    image: mvnsakash/shareify-frontend:v1.1.2
     container_name: shareify-frontend
     ports:
       - "80:80"
@@ -111,6 +118,7 @@ services:
   # ── Notification Service ────────────────────────────────────────────────
   notification-service:
     build: ./notification-service
+    image: mvnsakash/shareify-notification-service:v1.1.2
     container_name: shareify-notification-service
     ports:
       - "8007:8000"

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: item-service
-          image: mvnsakash/shareify-item-service:v1.1.1
+          image: mvnsakash/shareify-item-service:v1.1.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000

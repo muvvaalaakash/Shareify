@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: mvnsakash/shareify-notification-service:v1.1.1
+          image: mvnsakash/shareify-notification-service:v1.1.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
