@@ -86,19 +86,12 @@ services:
     volumes:
       - review-data:/data
 
-  # ── API Gateway ──────────────────────────────────────────────────────────
-  api-gateway:
-    build: ./api-gateway
-    container_name: shareify-api-gateway
+  # ── Frontend ─────────────────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    container_name: shareify-frontend
     ports:
-      - "8000:8000"
-    environment:
-      - USER_SERVICE_URL=http://user-service:8000
-      - ITEM_SERVICE_URL=http://item-service:8000
-      - INVENTORY_SERVICE_URL=http://inventory-service:8000
-      - BOOKING_SERVICE_URL=http://booking-service:8000
-      - PAYMENT_SERVICE_URL=http://payment-service:8000
-      - REVIEW_SERVICE_URL=http://review-service:8000
+      - "80:80"
     depends_on:
       - user-service
       - item-service
