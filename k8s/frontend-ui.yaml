@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: shareify/shareify-frontend:latest
+          image: mvnsakash/shareify-frontend:v1.1.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
@@ -28,11 +28,10 @@ metadata:
   labels:
     app: shareify-frontend
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: shareify-frontend
   ports:
     - port: 80
       targetPort: 80
-      nodePort: 30081
       protocol: TCP

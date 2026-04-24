@@ -1,10 +1,11 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: shareify-payment-service
   labels:
     app: shareify-payment-service
 spec:
+  serviceName: "shareify-payment-service"
   replicas: 1
   selector:
     matchLabels:
@@ -16,7 +17,8 @@ spec:
     spec:
       containers:
         - name: payment-service
-          image: mvnsakash/payment-service:latest
+          image: mvnsakash/shareify-payment-service:v1.1.1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           env:
@@ -25,9 +27,15 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
-      volumes:
-        - name: data
-          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "csi-standard"
+        resources:
+          requests:
+            storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
