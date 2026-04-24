@@ -83,6 +83,7 @@ services:
 
 frontend:
   name: frontend
+  imageTag: v1.1.3
   port: 80
   replicas: 1
   strategy:

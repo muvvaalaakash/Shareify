@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: {{ $val.name }}
-          image: "{{ $.Values.global.dockerUsername }}/shareify-{{ $val.name }}:{{ $.Values.global.imageTag }}"
+          image: "{{ $.Values.global.dockerUsername }}/shareify-{{ $val.name }}:{{ $val.imageTag | default $.Values.global.imageTag }}"
           imagePullPolicy: {{ $.Values.backendDefaults.imagePullPolicy }}
           ports:
             - containerPort: {{ $val.port }}

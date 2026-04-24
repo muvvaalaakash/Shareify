@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: "{{ .Values.global.dockerUsername }}/shareify-{{ .Values.frontend.name }}:{{ .Values.global.imageTag }}"
+          image: "{{ .Values.global.dockerUsername }}/shareify-{{ .Values.frontend.name }}:{{ .Values.frontend.imageTag | default .Values.global.imageTag }}"
           imagePullPolicy: {{ .Values.backendDefaults.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.frontend.port }}
