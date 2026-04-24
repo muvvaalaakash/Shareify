@@ -292,6 +292,8 @@ function renderItemDetails(item) {
                                 <input type="date" id="start-date" required>
                                 <label>End Date</label>
                                 <input type="date" id="end-date" required>
+                                <label>Your Email (for confirmation)</label>
+                                <input type="email" id="customer-email" required placeholder="you@example.com">
                                 <button type="submit" class="btn">Confirm Booking</button>
                             </form>
                         </div>
@@ -317,13 +319,14 @@ async function bookItem(e) {
     e.preventDefault();
     const start_date = document.getElementById("start-date").value;
     const end_date = document.getElementById("end-date").value;
+    const customer_email = document.getElementById("customer-email").value;
     const item_id = window.currentItem.item_id;
 
     try {
         const res = await fetch(`${API_BASE}/bookings`, {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify({ item_id, start_date, end_date })
+            body: JSON.stringify({ item_id, start_date, end_date, customer_email })
         });
         const data = await res.json();
 
