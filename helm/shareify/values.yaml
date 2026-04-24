@@ -5,6 +5,7 @@ global:
   dockerUsername: mvnsakash
   imageTag: v1.1.2
   nfsServerIp: "172.31.40.121"
+  nfsShare: "/var/nfs/general"
   jwtSecret: "shareify-secret-key-2024"
   storageClassName: "csi-standard"
 
