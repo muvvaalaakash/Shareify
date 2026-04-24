@@ -6,7 +6,7 @@ spec:
   parentRefs:
   - name: {{ .Values.gateway.name }}
   rules:
-  # 1. Auth Service
+  # 1. Auth Service (Strip /api prefix)
   - matches:
     - path:
         type: PathPrefix
@@ -17,38 +17,62 @@ spec:
     - path:
         type: PathPrefix
         value: /api/profile
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
     backendRefs:
     - name: shareify-user-service
       port: 8000
 
-  # 2. Item Service
+  # 2. Item Service (Strip /api prefix)
   - matches:
     - path:
         type: PathPrefix
         value: /api/items
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
     backendRefs:
     - name: shareify-item-service
       port: 8000
 
-  # 3. Booking Service
+  # 3. Booking Service (Strip /api prefix)
   - matches:
     - path:
         type: PathPrefix
         value: /api/bookings
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
     backendRefs:
     - name: shareify-booking-service
       port: 8000
 
-  # 4. Review Service
+  # 4. Review Service (Strip /api prefix)
   - matches:
     - path:
         type: PathPrefix
         value: /api/reviews
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
     backendRefs:
     - name: shareify-review-service
       port: 8000
 
-  # 5. UI Route (Catch-all MUST be at the bottom)
+  # 5. UI Route (Catch-all - No rewrite needed)
   - matches:
     - path:
         type: PathPrefix
