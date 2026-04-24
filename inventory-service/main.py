@@ -183,6 +183,18 @@ def release_reservation(req: ReleaseRequest):
         conn.close()
 
 
+@app.delete("/inventory/{item_id}")
+def delete_item(item_id: str):
+    conn = get_db()
+    try:
+        conn.execute("DELETE FROM inventory WHERE item_id = ?", (item_id,))
+        conn.execute("DELETE FROM reservations WHERE item_id = ?", (item_id,))
+        conn.commit()
+        return {"message": "Item deleted from inventory"}
+    finally:
+        conn.close()
+
+
 @app.get("/health")
 def health():
     return {"status": "healthy", "service": "shareify-inventory-service"}

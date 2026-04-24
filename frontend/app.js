@@ -210,11 +210,12 @@ async function fetchItems() {
 
         grid.innerHTML = items.map(item => `
             <div class="item-card" onclick='navigateTo("item-details", ${JSON.stringify(item)})'>
-                <div>
+                ${item.image_url ? `<img src="${item.image_url}" class="item-image" alt="${item.title}" onerror="this.src='https://placehold.co/400x300?text=No+Image'">` : `<div class="item-no-image">No Image</div>`}
+                <div style="padding: 1.5rem;">
                     <div class="item-category">${item.category}</div>
                     <div class="item-title">${item.title}</div>
+                    <div class="item-price">$${item.price_per_day.toFixed(2)} <span>/ day</span></div>
                 </div>
-                <div class="item-price">$${item.price_per_day.toFixed(2)} <span>/ day</span></div>
             </div>
         `).join("");
     } catch (err) {
@@ -240,6 +241,9 @@ function renderAddItem() {
                 
                 <label>Price per Day ($)</label>
                 <input type="number" id="item-price" required min="1" step="0.01" placeholder="15.00">
+
+                <label>Image URL (optional)</label>
+                <input type="url" id="item-image" placeholder="https://example.com/image.jpg">
                 
                 <button type="submit" class="btn">Add Item</button>
             </form>
@@ -252,12 +256,13 @@ async function addItem(e) {
     const title = document.getElementById("item-title").value;
     const category = document.getElementById("item-category").value;
     const price_per_day = parseFloat(document.getElementById("item-price").value);
+    const image_url = document.getElementById("item-image").value;
 
     try {
         const res = await fetch(`${API_BASE}/items`, {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify({ title, category, price_per_day })
+            body: JSON.stringify({ title, category, price_per_day, image_url })
         });
         const data = await res.json();
         if (res.ok) {
@@ -280,6 +285,7 @@ function renderItemDetails(item) {
             <button class="btn btn-small btn-secondary" style="margin-bottom:1.5rem" onclick="navigateTo('dashboard')">← Back</button>
             <div class="details-grid">
                 <div>
+                    ${item.image_url ? `<img src="${item.image_url}" class="item-details-image" alt="${item.title}" onerror="this.style.display='none'">` : ''}
                     <div class="item-category">${item.category}</div>
                     <h1 style="margin-bottom: 1rem; font-size: 2.5rem;">${item.title}</h1>
                     <div class="item-price">$${item.price_per_day.toFixed(2)} <span>/ day</span></div>
@@ -298,8 +304,9 @@ function renderItemDetails(item) {
                             </form>
                         </div>
                     ` : `
-                        <div style="margin-top: 2rem; padding: 1rem; background: rgba(138,43,226,0.1); border-radius: 8px;">
-                            <p><strong>✨ You own this item</strong></p>
+                        <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(138,43,226,0.1); border-radius: 12px; border: 1px solid var(--primary);">
+                            <p style="margin-bottom: 1rem;"><strong>✨ You own this item</strong></p>
+                            <button class="btn btn-small btn-secondary" onclick="deleteItem('${item.item_id}')" style="background: rgba(255,0,0,0.1); color: #ff4d4d; border: 1px solid #ff4d4d;">Delete Product</button>
                         </div>
                     `}
                 </div>
@@ -408,6 +415,26 @@ async function completeBooking(booking_id) {
         } else {
             const data = await res.json();
             showToast(data.detail || "Failed to complete booking", "error");
+        }
+    } catch (err) {
+        showToast("Connection error", "error");
+    }
+}
+
+async function deleteItem(item_id) {
+    if (!confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/items/${item_id}`, {
+            method: "DELETE",
+            headers: getAuthHeaders()
+        });
+        if (res.ok) {
+            showToast("Product deleted successfully");
+            navigateTo("dashboard");
+        } else {
+            const data = await res.json();
+            showToast(data.detail || "Failed to delete product", "error");
         }
     } catch (err) {
         showToast("Connection error", "error");
