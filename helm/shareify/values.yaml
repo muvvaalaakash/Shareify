@@ -6,7 +6,7 @@ global:
   imageTag: v1.1.2
   nfsServerIp: "172.31.40.121"
   jwtSecret: "shareify-secret-key-2024"
-  storageClassName: "csi-standard"
+  storageClassName: "nfs-client"
 
 # Common settings for backend services
 backendDefaults:

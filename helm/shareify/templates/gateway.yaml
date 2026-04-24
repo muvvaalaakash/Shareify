@@ -12,17 +12,3 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Values.gateway.name }}
-spec:
-  type: LoadBalancer
-  selector:
-    app: kgateway
-    kgateway: {{ .Values.gateway.name }}
-  ports:
-  - port: {{ .Values.gateway.port }}
-    targetPort: {{ .Values.gateway.port }}
-    nodePort: {{ .Values.gateway.nodePort }}
