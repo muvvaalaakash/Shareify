@@ -32,6 +32,10 @@ spec:
               value: "http://shareify-inventory-service:8000"
             - name: PAYMENT_SERVICE_URL
               value: "http://shareify-payment-service:8000"
+            - name: USER_SERVICE_URL
+              value: "http://shareify-user-service:8000"
+            - name: NOTIFICATION_SERVICE_URL
+              value: "http://shareify-notification-service:8000"
           volumeMounts:
             - name: data
               mountPath: /data

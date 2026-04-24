@@ -1,33 +1,26 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: shareify-review-service
+  name: shareify-notification-service
   labels:
-    app: shareify-review-service
+    app: shareify-notification-service
 spec:
-  serviceName: "shareify-review-service"
+  serviceName: "shareify-notification-service"
   replicas: 1
   selector:
     matchLabels:
-      app: shareify-review-service
+      app: shareify-notification-service
   template:
     metadata:
       labels:
-        app: shareify-review-service
+        app: shareify-notification-service
     spec:
       containers:
-        - name: review-service
-          image: mvnsakash/shareify-review-service:v1.1.1
+        - name: notification-service
+          image: mvnsakash/shareify-notification-service:v1.1.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
-          env:
-            - name: JWT_SECRET
-              value: "shareify-secret-key-2024"
-            - name: DATABASE_PATH
-              value: "/data/reviews.db"
-            - name: BOOKING_SERVICE_URL
-              value: "http://shareify-booking-service:8000"
           volumeMounts:
             - name: data
               mountPath: /data
@@ -44,13 +37,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: shareify-review-service
+  name: shareify-notification-service
   labels:
-    app: shareify-review-service
+    app: shareify-notification-service
 spec:
   type: ClusterIP
   selector:
-    app: shareify-review-service
+    app: shareify-notification-service
   ports:
     - port: 8000
       targetPort: 8000

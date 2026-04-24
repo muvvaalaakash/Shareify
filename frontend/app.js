@@ -296,6 +296,18 @@ function renderItemDetails(item) {
                             </form>
                         </div>
                     ` : `
+                    ${!isOwner ? `
+                        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--surface-border)">
+                            <h3>Book this Item</h3>
+                            <form onsubmit="bookItem(event)" style="margin-top: 1rem;">
+                                <label>Start Date</label>
+                                <input type="date" id="start-date" required>
+                                <label>End Date</label>
+                                <input type="date" id="end-date" required>
+                                <button type="submit" class="btn">Confirm Booking</button>
+                            </form>
+                        </div>
+                    ` : `
                         <div style="margin-top: 2rem; padding: 1rem; background: rgba(138,43,226,0.1); border-radius: 8px;">
                             <p><strong>✨ You own this item</strong></p>
                         </div>
@@ -307,24 +319,6 @@ function renderItemDetails(item) {
                     <div id="reviews-container" style="margin-top: 1rem; margin-bottom: 2rem;">
                         Loading reviews...
                     </div>
-                    
-                    ${!isOwner ? `
-                        <div style="padding-top: 1rem; border-top: 1px solid var(--surface-border)">
-                            <h4>Leave a Review</h4>
-                            <form onsubmit="submitReview(event)" style="margin-top: 1rem;">
-                                <select id="review-rating" required style="margin-bottom: 0.5rem">
-                                    <option value="" disabled selected>Select Rating</option>
-                                    <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-                                    <option value="4">⭐⭐⭐⭐ (4)</option>
-                                    <option value="3">⭐⭐⭐ (3)</option>
-                                    <option value="2">⭐⭐ (2)</option>
-                                    <option value="1">⭐ (1)</option>
-                                </select>
-                                <textarea id="review-comment" rows="3" placeholder="Write your review here..."></textarea>
-                                <button type="submit" class="btn btn-small">Submit Review</button>
-                            </form>
-                        </div>
-                    ` : ''}
                 </div>
             </div>
         </div>
@@ -390,7 +384,7 @@ async function submitReview(e) {
     e.preventDefault();
     const rating = parseInt(document.getElementById("review-rating").value);
     const comment = document.getElementById("review-comment").value;
-    const item_id = window.currentItem.item_id;
+    const item_id = window.currentReviewItemId;
 
     try {
         const res = await fetch(`${API_BASE}/reviews`, {
@@ -401,9 +395,7 @@ async function submitReview(e) {
 
         if (res.ok) {
             showToast("Review submitted successfully!");
-            fetchReviews(item_id);
-            document.getElementById("review-comment").value = "";
-            document.getElementById("review-rating").value = "";
+            navigateTo("my-bookings");
         } else {
             const data = await res.json();
             showToast(data.detail || "Failed to submit review", "error");
@@ -411,6 +403,49 @@ async function submitReview(e) {
     } catch (err) {
         showToast("Connection error", "error");
     }
+}
+
+async function completeBooking(booking_id) {
+    try {
+        const res = await fetch(`${API_BASE}/bookings/${booking_id}/complete`, {
+            method: "PUT",
+            headers: getAuthHeaders()
+        });
+        if (res.ok) {
+            showToast("Booking marked as completed!");
+            fetchMyBookings();
+        } else {
+            const data = await res.json();
+            showToast(data.detail || "Failed to complete booking", "error");
+        }
+    } catch (err) {
+        showToast("Connection error", "error");
+    }
+}
+
+function showReviewForm(item_id, item_title) {
+    window.currentReviewItemId = item_id;
+    const main = document.getElementById("main-content");
+    main.innerHTML = `
+        <div class="glass card form-container">
+            <button class="btn btn-small btn-secondary" style="margin-bottom:1.5rem" onclick="navigateTo('my-bookings')">← Back</button>
+            <h2 class="form-title">Review: ${item_title}</h2>
+            <form onsubmit="submitReview(event)">
+                <label>Rating</label>
+                <select id="review-rating" required style="margin-bottom: 1rem">
+                    <option value="" disabled selected>Select Rating</option>
+                    <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                    <option value="4">⭐⭐⭐⭐ (4)</option>
+                    <option value="3">⭐⭐⭐ (3)</option>
+                    <option value="2">⭐⭐ (2)</option>
+                    <option value="1">⭐ (1)</option>
+                </select>
+                <label>Comment</label>
+                <textarea id="review-comment" rows="4" placeholder="How was your experience using this item?"></textarea>
+                <button type="submit" class="btn">Submit Review</button>
+            </form>
+        </div>
+    `;
 }
 
 function renderMyBookings() {
@@ -439,9 +474,17 @@ async function fetchMyBookings() {
                     <div>
                         <h3 style="margin-bottom:0.5rem">Booking ID: <span style="font-size:0.9rem; font-weight:normal">${b.booking_id}</span></h3>
                         <p style="color:var(--text-muted); margin-bottom:0.5rem">Dates: ${b.start_date} to ${b.end_date}</p>
-                        <p><strong>Total Price:</strong> $${b.total_price.toFixed(2)}</p>
+                        <p style="margin-bottom:1rem"><strong>Total Price:</strong> $${b.total_price.toFixed(2)}</p>
+                        
+                        ${b.status === 'confirmed' ? `
+                            <button class="btn btn-small" onclick="completeBooking('${b.booking_id}')">Mark as Received/Used</button>
+                        ` : ''}
+                        
+                        ${b.status === 'completed' ? `
+                            <button class="btn btn-small btn-primary" onclick="showReviewForm('${b.item_id}', 'Item ${b.item_id}')">Leave a Review</button>
+                        ` : ''}
                     </div>
-                    <div style="background:var(--success); padding:0.3rem 0.8rem; border-radius:20px; font-size:0.8rem; font-weight:bold;">
+                    <div style="background:${b.status === 'completed' ? 'var(--primary)' : 'var(--success)'}; padding:0.3rem 0.8rem; border-radius:20px; font-size:0.8rem; font-weight:bold;">
                         ${b.status.toUpperCase()}
                     </div>
                 </div>
