@@ -6,12 +6,48 @@ spec:
   parentRefs:
   - name: shareify-gateway
   rules:
-  # User Service
+  # User Service - Registration
+  - matches:
+    - path: { type: PathPrefix, value: /api/register }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /register
+    backendRefs:
+    - name: shareify-user-service
+      port: 8000
+  
+  # User Service - Login
+  - matches:
+    - path: { type: PathPrefix, value: /api/login }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /login
+    backendRefs:
+    - name: shareify-user-service
+      port: 8000
+
+  # User Service - Profile
+  - matches:
+    - path: { type: PathPrefix, value: /api/profile }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /profile
+    backendRefs:
+    - name: shareify-user-service
+      port: 8000
+
+  # User Service - Users API
   - matches:
     - path: { type: PathPrefix, value: /api/users }
-    - path: { type: PathPrefix, value: /api/login }
-    - path: { type: PathPrefix, value: /api/register }
-    - path: { type: PathPrefix, value: /api/profile }
     filters:
     - type: URLRewrite
       urlRewrite:
@@ -48,16 +84,28 @@ spec:
     - name: shareify-booking-service
       port: 8000
 
-  # Inventory Service
+  # Inventory Service - Root
   - matches:
     - path: { type: PathPrefix, value: /api/inventory }
-    - path: { type: PathPrefix, value: /api/availability }
     filters:
     - type: URLRewrite
       urlRewrite:
         path:
           type: ReplacePrefixMatch
           replacePrefixMatch: /
+    backendRefs:
+    - name: shareify-inventory-service
+      port: 8000
+
+  # Inventory Service - Availability
+  - matches:
+    - path: { type: PathPrefix, value: /api/availability }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /availability
     backendRefs:
     - name: shareify-inventory-service
       port: 8000
