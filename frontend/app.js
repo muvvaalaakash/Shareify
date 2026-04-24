@@ -46,6 +46,7 @@ function updateNav() {
             <button onclick="navigateTo('dashboard')">Browse</button>
             <button onclick="navigateTo('add-item')">List Item</button>
             <button onclick="navigateTo('my-bookings')">My Bookings</button>
+            <button onclick="navigateTo('my-payments')">My Payments</button>
             <button onclick="logout()">Logout (${currentUser.name})</button>
         `;
     } else {
@@ -66,6 +67,7 @@ function navigateTo(page, data = null) {
     else if (page === "add-item") main.innerHTML = renderAddItem();
     else if (page === "item-details") { main.innerHTML = renderItemDetails(data); fetchReviews(data.item_id); }
     else if (page === "my-bookings") { main.innerHTML = renderMyBookings(); fetchMyBookings(); }
+    else if (page === "my-payments") { main.innerHTML = renderMyPayments(); fetchMyPayments(); }
 
     updateNav();
 }
@@ -510,5 +512,47 @@ async function fetchMyBookings() {
         `).join("");
     } catch (err) {
         document.getElementById("bookings-list").innerHTML = "<p>Error loading bookings.</p>";
+    }
+}
+function renderMyPayments() {
+    return `
+        <h2>My Payments</h2>
+        <div id="payments-list" style="margin-top: 2rem;">
+            Loading payments...
+        </div>
+    `;
+}
+
+async function fetchMyPayments() {
+    try {
+        // We get payments by looking at our bookings which have payment IDs
+        const res = await fetch(`${API_BASE}/bookings`, { headers: getAuthHeaders() });
+        const bookings = await res.json();
+        const list = document.getElementById("payments-list");
+
+        const paidBookings = bookings.filter(b => b.payment_id);
+
+        if (paidBookings.length === 0) {
+            list.innerHTML = "<p>No payment records found.</p>";
+            return;
+        }
+
+        list.innerHTML = paidBookings.map(b => `
+            <div class="glass card" style="margin-bottom: 1.5rem; padding: 1.5rem; border-left: 5px solid var(--success);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.3rem">Transaction Date: ${new Date(b.created_at).toLocaleDateString()}</p>
+                        <h3 style="margin-bottom:0.5rem">Payment ID: <span style="font-size:0.9rem; font-weight:normal">${b.payment_id}</span></h3>
+                        <p><strong>Amount Paid:</strong> $${b.total_price.toFixed(2)}</p>
+                        <p style="font-size:0.85rem; margin-top:0.5rem">For Booking: <span style="color:var(--primary)">${b.booking_id}</span></p>
+                    </div>
+                    <div style="text-align:right">
+                        <span style="color:var(--success); font-weight:bold;">● COMPLETED</span>
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    } catch (err) {
+        document.getElementById("payments-list").innerHTML = "<p>Error loading payment history.</p>";
     }
 }

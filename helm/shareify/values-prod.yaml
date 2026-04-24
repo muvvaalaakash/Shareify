@@ -5,6 +5,20 @@ global:
 backendDefaults:
   replicas: 2
   storageSize: 5Gi
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 20m
+      memory: 32Mi
 
 frontend:
   replicas: 2
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 16Mi
