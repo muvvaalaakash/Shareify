@@ -114,6 +114,12 @@ services:
     container_name: shareify-notification-service
     ports:
       - "8007:8000"
+    environment:
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=your-email@gmail.com
+      - SMTP_PASSWORD=your-app-password
+      - SMTP_FROM=your-email@gmail.com
     volumes:
       - notification-data:/data
 

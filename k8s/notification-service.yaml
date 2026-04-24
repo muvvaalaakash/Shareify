@@ -21,6 +21,17 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
+          env:
+            - name: SMTP_HOST
+              value: "smtp.gmail.com"
+            - name: SMTP_PORT
+              value: "587"
+            - name: SMTP_USER
+              value: "your-email@gmail.com"
+            - name: SMTP_PASSWORD
+              value: "your-app-password"
+            - name: SMTP_FROM
+              value: "your-email@gmail.com"
           volumeMounts:
             - name: data
               mountPath: /data
