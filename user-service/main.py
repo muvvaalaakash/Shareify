@@ -10,8 +10,7 @@ import os
 import uuid
 import sqlite3
 from datetime import datetime, timedelta, timezone
-from fastapi import FastAPI, HTTPException, Depends, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from passlib.context import CryptContext
@@ -19,20 +18,13 @@ import jwt
 
 app = FastAPI(title="Shareify User Service", version="1.0.0")
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"detail": f"Internal Server Error: {str(exc)}", "type": type(exc).__name__},
-    )
-
 # ── Config ──────────────────────────────────────────────────────────────────
 SECRET_KEY = os.getenv("JWT_SECRET", "shareify-secret-key-2024")
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_MINUTES = int(os.getenv("TOKEN_EXPIRE_MINUTES", "60"))
 DATABASE = os.getenv("DATABASE_PATH", "./data/users.db")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 security = HTTPBearer()
 
 
