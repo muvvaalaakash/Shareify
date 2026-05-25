@@ -1,5 +1,5 @@
 // ── Configuration ──────────────────────────────────────────
-const API_BASE = "http://13.126.242.38:30080/api";
+const API_BASE = "/api";
 
 // ── State ──────────────────────────────────────────────────
 let currentUser = null;

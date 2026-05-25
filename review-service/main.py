@@ -6,7 +6,8 @@ Shareify Review Service
 
 import os
 import uuid
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -18,17 +19,35 @@ app = FastAPI(title="Shareify Review Service", version="1.0.0")
 # ── Config ──────────────────────────────────────────────────────────────────
 SECRET_KEY = os.getenv("JWT_SECRET", "shareify-secret-key-2024")
 ALGORITHM = "HS256"
-DATABASE = os.getenv("DATABASE_PATH", "./data/reviews.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://Akash:Akash@21042004@localhost:5432/reviews_db")
 
 security = HTTPBearer()
 
 
 # ── Database ────────────────────────────────────────────────────────────────
+class PostgreSQLConnection:
+    def __init__(self, conn):
+        self.conn = conn
+
+    def execute(self, query, params=None):
+        query = query.replace("?", "%s")
+        cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute(query, params)
+        return cursor
+
+    def commit(self):
+        self.conn.commit()
+
+    def rollback(self):
+        self.conn.rollback()
+
+    def close(self):
+        self.conn.close()
+
+
 def get_db():
-    os.makedirs(os.path.dirname(DATABASE) or ".", exist_ok=True)
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+    conn = psycopg2.connect(DATABASE_URL)
+    return PostgreSQLConnection(conn)
 
 
 def init_db():
