@@ -22,12 +22,12 @@ app.add_middleware(
 
 # ── Service URLs ────────────────────────────────────────────────────────────
 SERVICE_MAP = {
-    "users": "http://shareify-user-service:8000",
-    "items": "http://shareify-item-service:8000",
-    "inventory": "http://shareify-inventory-service:8000",
-    "bookings": "http://shareify-booking-service:8000",
-    "payments": "http://shareify-payment-service:8000",
-    "reviews": "http://shareify-review-service:8000",
+    "users": os.environ.get("USER_SERVICE_URL", "http://127.0.0.1:8001"),
+    "items": os.environ.get("ITEM_SERVICE_URL", "http://127.0.0.1:8002"),
+    "inventory": os.environ.get("INVENTORY_SERVICE_URL", "http://127.0.0.1:8003"),
+    "bookings": os.environ.get("BOOKING_SERVICE_URL", "http://127.0.0.1:8004"),
+    "payments": os.environ.get("PAYMENT_SERVICE_URL", "http://127.0.0.1:8005"),
+    "reviews": os.environ.get("REVIEW_SERVICE_URL", "http://127.0.0.1:8006"),
 }
 
 client = httpx.AsyncClient(timeout=10.0)
