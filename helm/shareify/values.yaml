@@ -1,0 +1,105 @@
+# Default values for shareify.
+global:
+  dockerUsername: mvnsakash
+  imageTag: v1.1.2
+  nfsServerIp: "172.31.40.121"
+  nfsShare: "/var/nfs/general"
+  storageClassName: "csi-standard"
+  
+  # Centralized Secrets
+  jwtSecret: "shareify-secret-key-2024"
+  smtpPassword: "nfzrhrvcmmhgszjt"
+
+# Common settings for backend services
+backendDefaults:
+  replicas: 1
+  storageSize: 1Gi
+  imagePullPolicy: IfNotPresent
+  
+  # Production Strategy
+  updateStrategy:
+    type: RollingUpdate
+    # Note: StatefulSet RollingUpdate doesn't use maxSurge/maxUnavailable 
+    # but we can simulate it with podManagementPolicy or Deployment conversion.
+    # For now, we use standard RollingUpdate.
+
+  # Resource Management
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # Health Checks
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+services:
+  user:
+    name: user-service
+    port: 8000
+    dbPath: "/data/users.db"
+  item:
+    name: item-service
+    port: 8000
+    dbPath: "/data/items.db"
+  inventory:
+    name: inventory-service
+    port: 8000
+    dbPath: "/data/inventory.db"
+  booking:
+    name: booking-service
+    port: 8000
+    dbPath: "/data/bookings.db"
+  payment:
+    name: payment-service
+    port: 8000
+    dbPath: "/data/payments.db"
+  review:
+    name: review-service
+    port: 8000
+    dbPath: "/data/reviews.db"
+  notification:
+    name: notification-service
+    port: 8000
+    dbPath: "/data/notifications.db"
+    smtp:
+      host: "smtp.gmail.com"
+      port: "587"
+      user: "aknagasai2104@gmail.com"
+      from: "aknagasai2104@gmail.com"
+
+frontend:
+  name: frontend
+  imageTag: v1.1.3
+  port: 80
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+gateway:
+  name: gateway
+  port: 80
+  nodePort: 32749

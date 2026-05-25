@@ -1,0 +1,69 @@
+{{- range $key, $val := .Values.services }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shareify-{{ $val.name }}
+  labels:
+    app: shareify-{{ $val.name }}
+spec:
+  serviceName: "shareify-{{ $val.name }}"
+  replicas: {{ $.Values.backendDefaults.replicas }}
+  updateStrategy:
+    type: {{ $.Values.backendDefaults.updateStrategy.type }}
+  selector:
+    matchLabels:
+      app: shareify-{{ $val.name }}
+  template:
+    metadata:
+      labels:
+        app: shareify-{{ $val.name }}
+    spec:
+      containers:
+        - name: {{ $val.name }}
+          image: "{{ $.Values.global.dockerUsername }}/shareify-{{ $val.name }}:{{ $val.imageTag | default $.Values.global.imageTag }}"
+          imagePullPolicy: {{ $.Values.backendDefaults.imagePullPolicy }}
+          ports:
+            - containerPort: {{ $val.port }}
+          resources:
+            {{- toYaml $.Values.backendDefaults.resources | nindent 12 }}
+          livenessProbe:
+            {{- toYaml $.Values.backendDefaults.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml $.Values.backendDefaults.readinessProbe | nindent 12 }}
+          env:
+            - name: DATABASE_PATH
+              value: {{ $val.dbPath | quote }}
+          envFrom:
+            - configMapRef:
+                name: shareify-config
+            - secretRef:
+                name: shareify-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ $.Values.global.storageClassName | quote }}
+        resources:
+          requests:
+            storage: {{ $.Values.backendDefaults.storageSize }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-{{ $val.name }}
+  labels:
+    app: shareify-{{ $val.name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-{{ $val.name }}
+  ports:
+    - port: {{ $val.port }}
+      targetPort: {{ $val.port }}
+      protocol: TCP
+---
+{{- end }}

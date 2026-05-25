@@ -13,6 +13,7 @@ from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 import jwt
+import httpx
 
 app = FastAPI(title="Shareify Review Service", version="1.0.0")
 
@@ -20,6 +21,7 @@ app = FastAPI(title="Shareify Review Service", version="1.0.0")
 SECRET_KEY = os.getenv("JWT_SECRET", "shareify-secret-key-2024")
 ALGORITHM = "HS256"
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://Akash:Akash@21042004@localhost:5432/reviews_db")
+BOOKING_SERVICE_URL = os.getenv("BOOKING_SERVICE_URL", "http://localhost:8004")
 
 security = HTTPBearer()
 
@@ -96,6 +98,24 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
 def add_review(review: ReviewCreate, payload: dict = Depends(verify_token)):
     review_id = str(uuid.uuid4())
     user_id = payload["user_id"]
+
+    # ── Step 1: Verify that the user has a COMPLETED booking for this item ──
+    try:
+        resp = httpx.get(
+            f"{BOOKING_SERVICE_URL}/bookings/verify-completion",
+            params={"user_id": user_id, "item_id": review.item_id},
+            timeout=5.0
+        )
+        resp.raise_for_status()
+        if not resp.json().get("completed"):
+            raise HTTPException(
+                status_code=403, 
+                detail="You can only review an item after your booking is completed/used."
+            )
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Booking service unavailable: {e}")
 
     conn = get_db()
     try:

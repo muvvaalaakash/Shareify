@@ -1,0 +1,151 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: shareify-api-route
+spec:
+  parentRefs:
+  - name: shareify-gateway
+  rules:
+  # User Service - Registration
+  - matches:
+    - path: { type: PathPrefix, value: /api/register }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /register
+    backendRefs:
+    - name: shareify-user-service
+      port: 8000
+  
+  # User Service - Login
+  - matches:
+    - path: { type: PathPrefix, value: /api/login }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /login
+    backendRefs:
+    - name: shareify-user-service
+      port: 8000
+
+  # User Service - Profile
+  - matches:
+    - path: { type: PathPrefix, value: /api/profile }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /profile
+    backendRefs:
+    - name: shareify-user-service
+      port: 8000
+
+  # User Service - Users API
+  - matches:
+    - path: { type: PathPrefix, value: /api/users }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backendRefs:
+    - name: shareify-user-service
+      port: 8000
+
+  # Item Service
+  - matches:
+    - path: { type: PathPrefix, value: /api/items }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /items
+    backendRefs:
+    - name: shareify-item-service
+      port: 8000
+
+  # Booking Service
+  - matches:
+    - path: { type: PathPrefix, value: /api/bookings }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /bookings
+    backendRefs:
+    - name: shareify-booking-service
+      port: 8000
+
+  # Inventory Service - Root
+  - matches:
+    - path: { type: PathPrefix, value: /api/inventory }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backendRefs:
+    - name: shareify-inventory-service
+      port: 8000
+
+  # Inventory Service - Availability
+  - matches:
+    - path: { type: PathPrefix, value: /api/availability }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /availability
+    backendRefs:
+    - name: shareify-inventory-service
+      port: 8000
+
+  # Payment Service
+  - matches:
+    - path: { type: PathPrefix, value: /api/payments }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /payments
+    backendRefs:
+    - name: shareify-payment-service
+      port: 8000
+
+  # Review Service
+  - matches:
+    - path: { type: PathPrefix, value: /api/reviews }
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /reviews
+    backendRefs:
+    - name: shareify-review-service
+      port: 8000
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: shareify-frontend-route
+spec:
+  parentRefs:
+  - name: shareify-gateway
+  rules:
+  - matches:
+    - path: { type: PathPrefix, value: / }
+    backendRefs:
+    - name: shareify-frontend
+      port: 80

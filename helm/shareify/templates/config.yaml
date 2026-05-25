@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shareify-config
+data:
+  SMTP_HOST: {{ .Values.services.notification.smtp.host | quote }}
+  SMTP_PORT: {{ .Values.services.notification.smtp.port | quote }}
+  SMTP_USER: {{ .Values.services.notification.smtp.user | quote }}
+  SMTP_FROM: {{ .Values.services.notification.smtp.from | quote }}
+  ITEM_SERVICE_URL: "http://shareify-item-service:8000"
+  INVENTORY_SERVICE_URL: "http://shareify-inventory-service:8000"
+  BOOKING_SERVICE_URL: "http://shareify-booking-service:8000"
+  PAYMENT_SERVICE_URL: "http://shareify-payment-service:8000"
+  USER_SERVICE_URL: "http://shareify-user-service:8000"
+  NOTIFICATION_SERVICE_URL: "http://shareify-notification-service:8000"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: shareify-secrets
+type: Opaque
+stringData:
+  JWT_SECRET: {{ .Values.global.jwtSecret | quote }}
+  SMTP_PASSWORD: {{ .Values.global.smtpPassword | quote }}

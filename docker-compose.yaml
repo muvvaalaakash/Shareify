@@ -9,6 +9,7 @@ services:
   # ── User Service ──────────────────────────────────────────────────────────
   user-service:
     build: ./user-service
+    image: mvnsakash/shareify-user-service:v1.1.2
     container_name: shareify-user-service
     ports:
       - "8001:8000"
@@ -21,6 +22,7 @@ services:
   # ── Item Service ──────────────────────────────────────────────────────────
   item-service:
     build: ./item-service
+    image: mvnsakash/shareify-item-service:v1.1.2
     container_name: shareify-item-service
     ports:
       - "8002:8000"
@@ -36,6 +38,7 @@ services:
   # ── Inventory Service ────────────────────────────────────────────────────
   inventory-service:
     build: ./inventory-service
+    image: mvnsakash/shareify-inventory-service:v1.1.2
     container_name: shareify-inventory-service
     ports:
       - "8003:8000"
@@ -47,6 +50,7 @@ services:
   # ── Booking Service ──────────────────────────────────────────────────────
   booking-service:
     build: ./booking-service
+    image: mvnsakash/shareify-booking-service:v1.1.2
     container_name: shareify-booking-service
     ports:
       - "8004:8000"
@@ -56,16 +60,21 @@ services:
       - ITEM_SERVICE_URL=http://item-service:8000
       - INVENTORY_SERVICE_URL=http://inventory-service:8000
       - PAYMENT_SERVICE_URL=http://payment-service:8000
+      - USER_SERVICE_URL=http://user-service:8000
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8000
     volumes:
       - booking-data:/data
     depends_on:
       - item-service
       - inventory-service
       - payment-service
+      - user-service
+      - notification-service
 
   # ── Payment Service ──────────────────────────────────────────────────────
   payment-service:
     build: ./payment-service
+    image: mvnsakash/shareify-payment-service:v1.1.2
     container_name: shareify-payment-service
     ports:
       - "8005:8000"
@@ -77,28 +86,26 @@ services:
   # ── Review Service ───────────────────────────────────────────────────────
   review-service:
     build: ./review-service
+    image: mvnsakash/shareify-review-service:v1.1.2
     container_name: shareify-review-service
     ports:
       - "8006:8000"
     environment:
       - JWT_SECRET=shareify-secret-key-2024
       - DATABASE_PATH=/data/reviews.db
+      - BOOKING_SERVICE_URL=http://booking-service:8000
+    depends_on:
+      - booking-service
     volumes:
       - review-data:/data
 
-  # ── API Gateway ──────────────────────────────────────────────────────────
-  api-gateway:
-    build: ./api-gateway
-    container_name: shareify-api-gateway
+  # ── Frontend ─────────────────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    image: mvnsakash/shareify-frontend:v1.1.2
+    container_name: shareify-frontend
     ports:
-      - "8000:8000"
-    environment:
-      - USER_SERVICE_URL=http://user-service:8000
-      - ITEM_SERVICE_URL=http://item-service:8000
-      - INVENTORY_SERVICE_URL=http://inventory-service:8000
-      - BOOKING_SERVICE_URL=http://booking-service:8000
-      - PAYMENT_SERVICE_URL=http://payment-service:8000
-      - REVIEW_SERVICE_URL=http://review-service:8000
+      - "80:80"
     depends_on:
       - user-service
       - item-service
@@ -106,6 +113,23 @@ services:
       - booking-service
       - payment-service
       - review-service
+      - notification-service
+
+  # ── Notification Service ────────────────────────────────────────────────
+  notification-service:
+    build: ./notification-service
+    image: mvnsakash/shareify-notification-service:v1.1.2
+    container_name: shareify-notification-service
+    ports:
+      - "8007:8000"
+    environment:
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=aknagasai2104@gmail.com
+      - SMTP_PASSWORD=nfzrhrvcmmhgszjt
+      - SMTP_FROM=aknagasai2104@gmail.com
+    volumes:
+      - notification-data:/data
 
 volumes:
   user-data:
@@ -114,3 +138,4 @@ volumes:
   booking-data:
   payment-data:
   review-data:
+  notification-data:

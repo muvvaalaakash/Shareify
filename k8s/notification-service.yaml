@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shareify-notification-service
+  labels:
+    app: shareify-notification-service
+spec:
+  serviceName: "shareify-notification-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareify-notification-service
+  template:
+    metadata:
+      labels:
+        app: shareify-notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: mvnsakash/shareify-notification-service:v1.1.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: SMTP_HOST
+              value: "smtp.gmail.com"
+            - name: SMTP_PORT
+              value: "587"
+            - name: SMTP_USER
+              value: "your-email@gmail.com"
+            - name: SMTP_PASSWORD
+              value: "your-app-password"
+            - name: SMTP_FROM
+              value: "your-email@gmail.com"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "csi-standard"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareify-notification-service
+  labels:
+    app: shareify-notification-service
+spec:
+  type: ClusterIP
+  selector:
+    app: shareify-notification-service
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP

@@ -1,0 +1,2 @@
+# This file is blank because csi-standard is a cluster-wide resource.
+# Both shareify-dev and shareify-prod will use the existing StorageClass.

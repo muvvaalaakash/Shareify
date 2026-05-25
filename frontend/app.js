@@ -46,6 +46,8 @@ function updateNav() {
             <button onclick="navigateTo('dashboard')">Browse</button>
             <button onclick="navigateTo('add-item')">List Item</button>
             <button onclick="navigateTo('my-bookings')">My Bookings</button>
+            <button onclick="navigateTo('my-payments')">My Payments</button>
+            <button onclick="navigateTo('faqs')">FAQs</button>
             <button onclick="logout()">Logout (${currentUser.name})</button>
         `;
     } else {
@@ -66,6 +68,8 @@ function navigateTo(page, data = null) {
     else if (page === "add-item") main.innerHTML = renderAddItem();
     else if (page === "item-details") { main.innerHTML = renderItemDetails(data); fetchReviews(data.item_id); }
     else if (page === "my-bookings") { main.innerHTML = renderMyBookings(); fetchMyBookings(); }
+    else if (page === "my-payments") { main.innerHTML = renderMyPayments(); fetchMyPayments(); }
+    else if (page === "faqs") { main.innerHTML = renderFAQs(); }
 
     updateNav();
 }
@@ -188,18 +192,61 @@ function renderRegister() {
 function renderDashboard() {
     return `
         <div class="header-flex">
-            <h2>Available Items</h2>
+            <h2>Explore Catalog</h2>
             <button class="btn btn-small" onclick="navigateTo('add-item')">+ List an Item</button>
         </div>
+
+        <div class="search-container glass" style="padding: 1.5rem; margin-bottom: 2rem; border-radius: 15px;">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <input type="text" id="search-input" placeholder="Search for items..." 
+                    style="flex: 1; min-width: 250px; margin-bottom: 0;"
+                    oninput="handleSearch()">
+                
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="category-filters">
+                    <button class="btn btn-small btn-secondary active" onclick="filterItems('All', this)">All</button>
+                    <button class="btn btn-small btn-secondary" onclick="filterItems('Electronics', this)">Electronics</button>
+                    <button class="btn btn-small btn-secondary" onclick="filterItems('Tools', this)">Tools</button>
+                    <button class="btn btn-small btn-secondary" onclick="filterItems('Furniture', this)">Furniture</button>
+                    <button class="btn btn-small btn-secondary" onclick="filterItems('Kitchen', this)">Kitchen</button>
+                </div>
+            </div>
+        </div>
+
         <div class="items-grid" id="items-grid">
             <p>Loading items...</p>
         </div>
     `;
 }
 
-async function fetchItems() {
+// Global state for filters
+window.currentCategory = 'All';
+window.searchQuery = '';
+
+function handleSearch() {
+    window.searchQuery = document.getElementById("search-input").value;
+    fetchItems(window.currentCategory === 'All' ? null : window.currentCategory, window.searchQuery);
+}
+
+function filterItems(category, btn) {
+    window.currentCategory = category;
+    
+    // Update active button UI
+    const btns = document.querySelectorAll("#category-filters button");
+    btns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    fetchItems(category === 'All' ? null : category, window.searchQuery);
+}
+
+async function fetchItems(category = null, q = null) {
     try {
-        const res = await fetch(`${API_BASE}/items`);
+        let url = `${API_BASE}/items`;
+        const params = new URLSearchParams();
+        if (category) params.append("category", category);
+        if (q) params.append("q", q);
+        if (params.toString()) url += `?${params.toString()}`;
+
+        const res = await fetch(url);
         const items = await res.json();
         const grid = document.getElementById("items-grid");
 
@@ -210,11 +257,12 @@ async function fetchItems() {
 
         grid.innerHTML = items.map(item => `
             <div class="item-card" onclick='navigateTo("item-details", ${JSON.stringify(item)})'>
-                <div>
+                ${item.image_url ? `<img src="${item.image_url}" class="item-image" alt="${item.title}" onerror="this.src='https://placehold.co/400x300?text=No+Image'">` : `<div class="item-no-image">No Image</div>`}
+                <div style="padding: 1.5rem;">
                     <div class="item-category">${item.category}</div>
                     <div class="item-title">${item.title}</div>
+                    <div class="item-price">$${item.price_per_day.toFixed(2)} <span>/ day</span></div>
                 </div>
-                <div class="item-price">$${item.price_per_day.toFixed(2)} <span>/ day</span></div>
             </div>
         `).join("");
     } catch (err) {
@@ -240,6 +288,9 @@ function renderAddItem() {
                 
                 <label>Price per Day ($)</label>
                 <input type="number" id="item-price" required min="1" step="0.01" placeholder="15.00">
+
+                <label>Image URL (optional)</label>
+                <input type="url" id="item-image" placeholder="https://example.com/image.jpg">
                 
                 <button type="submit" class="btn">Add Item</button>
             </form>
@@ -252,12 +303,13 @@ async function addItem(e) {
     const title = document.getElementById("item-title").value;
     const category = document.getElementById("item-category").value;
     const price_per_day = parseFloat(document.getElementById("item-price").value);
+    const image_url = document.getElementById("item-image").value;
 
     try {
         const res = await fetch(`${API_BASE}/items`, {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify({ title, category, price_per_day })
+            body: JSON.stringify({ title, category, price_per_day, image_url })
         });
         const data = await res.json();
         if (res.ok) {
@@ -280,6 +332,7 @@ function renderItemDetails(item) {
             <button class="btn btn-small btn-secondary" style="margin-bottom:1.5rem" onclick="navigateTo('dashboard')">← Back</button>
             <div class="details-grid">
                 <div>
+                    ${item.image_url ? `<img src="${item.image_url}" class="item-details-image" alt="${item.title}" onerror="this.style.display='none'">` : ''}
                     <div class="item-category">${item.category}</div>
                     <h1 style="margin-bottom: 1rem; font-size: 2.5rem;">${item.title}</h1>
                     <div class="item-price">$${item.price_per_day.toFixed(2)} <span>/ day</span></div>
@@ -292,12 +345,15 @@ function renderItemDetails(item) {
                                 <input type="date" id="start-date" required>
                                 <label>End Date</label>
                                 <input type="date" id="end-date" required>
+                                <label>Your Email (for confirmation)</label>
+                                <input type="email" id="customer-email" required placeholder="you@example.com">
                                 <button type="submit" class="btn">Confirm Booking</button>
                             </form>
                         </div>
                     ` : `
-                        <div style="margin-top: 2rem; padding: 1rem; background: rgba(138,43,226,0.1); border-radius: 8px;">
-                            <p><strong>✨ You own this item</strong></p>
+                        <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(138,43,226,0.1); border-radius: 12px; border: 1px solid var(--primary);">
+                            <p style="margin-bottom: 1rem;"><strong>✨ You own this item</strong></p>
+                            <button class="btn btn-small btn-secondary" onclick="deleteItem('${item.item_id}')" style="background: rgba(255,0,0,0.1); color: #ff4d4d; border: 1px solid #ff4d4d;">Delete Product</button>
                         </div>
                     `}
                 </div>
@@ -307,24 +363,6 @@ function renderItemDetails(item) {
                     <div id="reviews-container" style="margin-top: 1rem; margin-bottom: 2rem;">
                         Loading reviews...
                     </div>
-                    
-                    ${!isOwner ? `
-                        <div style="padding-top: 1rem; border-top: 1px solid var(--surface-border)">
-                            <h4>Leave a Review</h4>
-                            <form onsubmit="submitReview(event)" style="margin-top: 1rem;">
-                                <select id="review-rating" required style="margin-bottom: 0.5rem">
-                                    <option value="" disabled selected>Select Rating</option>
-                                    <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-                                    <option value="4">⭐⭐⭐⭐ (4)</option>
-                                    <option value="3">⭐⭐⭐ (3)</option>
-                                    <option value="2">⭐⭐ (2)</option>
-                                    <option value="1">⭐ (1)</option>
-                                </select>
-                                <textarea id="review-comment" rows="3" placeholder="Write your review here..."></textarea>
-                                <button type="submit" class="btn btn-small">Submit Review</button>
-                            </form>
-                        </div>
-                    ` : ''}
                 </div>
             </div>
         </div>
@@ -335,13 +373,14 @@ async function bookItem(e) {
     e.preventDefault();
     const start_date = document.getElementById("start-date").value;
     const end_date = document.getElementById("end-date").value;
+    const customer_email = document.getElementById("customer-email").value;
     const item_id = window.currentItem.item_id;
 
     try {
         const res = await fetch(`${API_BASE}/bookings`, {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify({ item_id, start_date, end_date })
+            body: JSON.stringify({ item_id, start_date, end_date, customer_email })
         });
         const data = await res.json();
 
@@ -390,7 +429,7 @@ async function submitReview(e) {
     e.preventDefault();
     const rating = parseInt(document.getElementById("review-rating").value);
     const comment = document.getElementById("review-comment").value;
-    const item_id = window.currentItem.item_id;
+    const item_id = window.currentReviewItemId;
 
     try {
         const res = await fetch(`${API_BASE}/reviews`, {
@@ -401,9 +440,7 @@ async function submitReview(e) {
 
         if (res.ok) {
             showToast("Review submitted successfully!");
-            fetchReviews(item_id);
-            document.getElementById("review-comment").value = "";
-            document.getElementById("review-rating").value = "";
+            navigateTo("my-bookings");
         } else {
             const data = await res.json();
             showToast(data.detail || "Failed to submit review", "error");
@@ -411,6 +448,69 @@ async function submitReview(e) {
     } catch (err) {
         showToast("Connection error", "error");
     }
+}
+
+async function completeBooking(booking_id) {
+    try {
+        const res = await fetch(`${API_BASE}/bookings/${booking_id}/complete`, {
+            method: "PUT",
+            headers: getAuthHeaders()
+        });
+        if (res.ok) {
+            showToast("Booking marked as completed!");
+            fetchMyBookings();
+        } else {
+            const data = await res.json();
+            showToast(data.detail || "Failed to complete booking", "error");
+        }
+    } catch (err) {
+        showToast("Connection error", "error");
+    }
+}
+
+async function deleteItem(item_id) {
+    if (!confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/items/${item_id}`, {
+            method: "DELETE",
+            headers: getAuthHeaders()
+        });
+        if (res.ok) {
+            showToast("Product deleted successfully");
+            navigateTo("dashboard");
+        } else {
+            const data = await res.json();
+            showToast(data.detail || "Failed to delete product", "error");
+        }
+    } catch (err) {
+        showToast("Connection error", "error");
+    }
+}
+
+function showReviewForm(item_id, item_title) {
+    window.currentReviewItemId = item_id;
+    const main = document.getElementById("main-content");
+    main.innerHTML = `
+        <div class="glass card form-container">
+            <button class="btn btn-small btn-secondary" style="margin-bottom:1.5rem" onclick="navigateTo('my-bookings')">← Back</button>
+            <h2 class="form-title">Review: ${item_title}</h2>
+            <form onsubmit="submitReview(event)">
+                <label>Rating</label>
+                <select id="review-rating" required style="margin-bottom: 1rem">
+                    <option value="" disabled selected>Select Rating</option>
+                    <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                    <option value="4">⭐⭐⭐⭐ (4)</option>
+                    <option value="3">⭐⭐⭐ (3)</option>
+                    <option value="2">⭐⭐ (2)</option>
+                    <option value="1">⭐ (1)</option>
+                </select>
+                <label>Comment</label>
+                <textarea id="review-comment" rows="4" placeholder="How was your experience using this item?"></textarea>
+                <button type="submit" class="btn">Submit Review</button>
+            </form>
+        </div>
+    `;
 }
 
 function renderMyBookings() {
@@ -439,9 +539,17 @@ async function fetchMyBookings() {
                     <div>
                         <h3 style="margin-bottom:0.5rem">Booking ID: <span style="font-size:0.9rem; font-weight:normal">${b.booking_id}</span></h3>
                         <p style="color:var(--text-muted); margin-bottom:0.5rem">Dates: ${b.start_date} to ${b.end_date}</p>
-                        <p><strong>Total Price:</strong> $${b.total_price.toFixed(2)}</p>
+                        <p style="margin-bottom:1rem"><strong>Total Price:</strong> $${b.total_price.toFixed(2)}</p>
+                        
+                        ${b.status === 'confirmed' ? `
+                            <button class="btn btn-small" onclick="completeBooking('${b.booking_id}')">Mark as Received/Used</button>
+                        ` : ''}
+                        
+                        ${b.status === 'completed' ? `
+                            <button class="btn btn-small btn-primary" onclick="showReviewForm('${b.item_id}', 'Item ${b.item_id}')">Leave a Review</button>
+                        ` : ''}
                     </div>
-                    <div style="background:var(--success); padding:0.3rem 0.8rem; border-radius:20px; font-size:0.8rem; font-weight:bold;">
+                    <div style="background:${b.status === 'completed' ? 'var(--primary)' : 'var(--success)'}; padding:0.3rem 0.8rem; border-radius:20px; font-size:0.8rem; font-weight:bold;">
                         ${b.status.toUpperCase()}
                     </div>
                 </div>
@@ -450,4 +558,67 @@ async function fetchMyBookings() {
     } catch (err) {
         document.getElementById("bookings-list").innerHTML = "<p>Error loading bookings.</p>";
     }
+}
+function renderMyPayments() {
+    return `
+        <h2>My Payments</h2>
+        <div id="payments-list" style="margin-top: 2rem;">
+            Loading payments...
+        </div>
+    `;
+}
+
+async function fetchMyPayments() {
+    try {
+        // We get payments by looking at our bookings which have payment IDs
+        const res = await fetch(`${API_BASE}/bookings`, { headers: getAuthHeaders() });
+        const bookings = await res.json();
+        const list = document.getElementById("payments-list");
+
+        const paidBookings = bookings.filter(b => b.payment_id);
+
+        if (paidBookings.length === 0) {
+            list.innerHTML = "<p>No payment records found.</p>";
+            return;
+        }
+
+        list.innerHTML = paidBookings.map(b => `
+            <div class="glass card" style="margin-bottom: 1.5rem; padding: 1.5rem; border-left: 5px solid var(--success);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.3rem">Transaction Date: ${new Date(b.created_at).toLocaleDateString()}</p>
+                        <h3 style="margin-bottom:0.5rem">Payment ID: <span style="font-size:0.9rem; font-weight:normal">${b.payment_id}</span></h3>
+                        <p><strong>Amount Paid:</strong> $${b.total_price.toFixed(2)}</p>
+                        <p style="font-size:0.85rem; margin-top:0.5rem">For Booking: <span style="color:var(--primary)">${b.booking_id}</span></p>
+                    </div>
+                    <div style="text-align:right">
+                        <span style="color:var(--success); font-weight:bold;">● COMPLETED</span>
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    } catch (err) {
+        document.getElementById("payments-list").innerHTML = "<p>Error loading payment history.</p>";
+    }
+}
+function renderFAQs() {
+    const faqs = [
+        { q: "How do I list an item?", a: "Click on 'List Item' in the navigation bar, fill in the details, and set a price!" },
+        { q: "Is Shareify secure?", a: "Yes! We use JWT authentication and secure backend microservices to protect your data." },
+        { q: "How do I pay?", a: "When you book an item, our payment service handles a mock transaction automatically." },
+        { q: "Can I delete my listed products?", a: "Yes, you can delete any items you own from the product details page." },
+        { q: "How do I leave a review?", a: "You can leave a review after your booking status is marked as 'Completed'." }
+    ];
+
+    return `
+        <div class="faq-container" style="max-width: 800px; margin: 0 auto;">
+            <h2 style="text-align:center; margin-bottom: 2rem;">Frequently Asked Questions</h2>
+            ${faqs.map(f => `
+                <div class="glass card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+                    <h3 style="color:var(--primary); margin-bottom: 0.5rem;">Q: ${f.q}</h3>
+                    <p>A: ${f.a}</p>
+                </div>
+            `).join("")}
+        </div>
+    `;
 }
